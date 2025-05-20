@@ -39,10 +39,10 @@ namespace ShortcutShelf
                     var json = File.ReadAllText(_dataFile);
                     _items = JsonSerializer.Deserialize<List<ShortcutItem>>(json) ?? new List<ShortcutItem>();
                 }
-                catch (Exception ex)
+                catch
                 {
                     _items = new List<ShortcutItem>();
-                    Log($"Error loading JSON: {ex.Message}");
+                    Log("Error loading JSON");
                 }
             }
             RefreshViews();
@@ -55,9 +55,9 @@ namespace ShortcutShelf
                 var json = JsonSerializer.Serialize(_items, new JsonSerializerOptions { WriteIndented = true });
                 File.WriteAllText(_dataFile, json);
             }
-            catch (Exception ex)
+            catch
             {
-                Log($"Error saving JSON: {ex.Message}");
+                Log("Error saving JSON");
             }
         }
 
@@ -67,12 +67,20 @@ namespace ShortcutShelf
             lvShortcuts.Items.Clear();
             imageListLarge.Images.Clear();
 
-            foreach (var item in _items)
+            for (int i = 0; i < _items.Count; i++)
             {
-                lbShortcuts.Items.Add(item);
+                var item = _items[i];
+                lbShortcuts.Items.Add(new BoxItem(item, i + 1));
+
                 var ico = GetIcon(item.FullPath);
                 imageListLarge.Images.Add(item.FullPath, ico);
-                lvShortcuts.Items.Add(new ListViewItem(item.Name) { Tag = item, ImageKey = item.FullPath });
+
+                var lvi = new ListViewItem(item.Name)
+                {
+                    Tag = item,
+                    ImageKey = item.FullPath
+                };
+                lvShortcuts.Items.Add(lvi);
             }
         }
 
@@ -101,24 +109,19 @@ namespace ShortcutShelf
 
         private void AddShortcut(string path)
         {
-            if (!File.Exists(path) && !Directory.Exists(path)) return;
-            if (_items.Any(i => string.Equals(i.FullPath, path, StringComparison.OrdinalIgnoreCase))) return;
+            if ((!File.Exists(path) && !Directory.Exists(path)) ||
+                _items.Any(i => string.Equals(i.FullPath, path, StringComparison.OrdinalIgnoreCase)))
+                return;
 
-            var item = new ShortcutItem(path);
-            _items.Add(item);
-
-            lbShortcuts.Items.Add(item);
-            var ico = GetIcon(path);
-            imageListLarge.Images.Add(path, ico);
-            lvShortcuts.Items.Add(new ListViewItem(item.Name) { Tag = item, ImageKey = path });
-
+            _items.Add(new ShortcutItem(path));
+            RefreshViews();
             Log($"Added '{path}'");
         }
 
         private void Control_SelectedIndexChanged(object sender, EventArgs e)
         {
-            var item = lbShortcuts.SelectedItem as ShortcutItem;
-            UpdateSelection(item);
+            var box = lbShortcuts.SelectedItem as BoxItem;
+            UpdateSelection(box?.Item);
         }
 
         private void LvShortcuts_ItemSelectionChanged(object sender, ListViewItemSelectionChangedEventArgs e)
@@ -144,34 +147,34 @@ namespace ShortcutShelf
 
         private void LbShortcuts_DoubleClick(object sender, EventArgs e)
         {
-            var item = lbShortcuts.SelectedItem as ShortcutItem;
-            if (item != null)
-                OpenItem(item);
+            var box = lbShortcuts.SelectedItem as BoxItem;
+            if (box != null)
+                OpenItem(box.Item);
         }
 
         private void OpenItem(ShortcutItem item)
         {
             if (item == null) return;
+            var target = item.FullPath;
+            var folder = Directory.Exists(target)
+                ? target
+                : Path.GetDirectoryName(target);
             try
             {
-                var target = item.FullPath;
-                var folder = Directory.Exists(target)
-                    ? target
-                    : Path.GetDirectoryName(target);
                 Process.Start("explorer.exe", folder);
                 Log($"Opened '{target}'");
             }
-            catch (Exception ex)
+            catch
             {
-                Log($"Error opening '{item.FullPath}': {ex.Message}");
+                Log($"Error opening '{target}'");
             }
         }
 
         private void DeleteToolStripMenuItem_Click(object sender, EventArgs e)
         {
             ShortcutItem item = null;
-            if (lbShortcuts.Focused && lbShortcuts.SelectedItem != null)
-                item = lbShortcuts.SelectedItem as ShortcutItem;
+            if (lbShortcuts.Focused && lbShortcuts.SelectedItem is BoxItem box)
+                item = box.Item;
             else if (lvShortcuts.Focused && lvShortcuts.SelectedItems.Count > 0)
                 item = lvShortcuts.SelectedItems[0].Tag as ShortcutItem;
 
@@ -181,13 +184,64 @@ namespace ShortcutShelf
             Log($"Deleted '{item.FullPath}'");
         }
 
-        private void Log(string message)
+        private void LbShortcuts_KeyDown(object sender, KeyEventArgs e)
         {
-            var timestamp = DateTime.Now.ToString("[HH:mm:ss] ");
-            rtbLog.AppendText(timestamp + message + Environment.NewLine);
+            if (lbShortcuts.SelectedIndex < 0) return;
+            int delta = e.KeyCode == Keys.Up || e.KeyCode == Keys.Left ? -1
+                      : e.KeyCode == Keys.Down || e.KeyCode == Keys.Right ? 1
+                      : 0;
+            if (delta != 0)
+            {
+                MoveItem(lbShortcuts.SelectedIndex, lbShortcuts.SelectedIndex + delta);
+                e.Handled = true;
+            }
         }
 
-        #region PInvoke for folder icon
+        private void LvShortcuts_KeyDown(object sender, KeyEventArgs e)
+        {
+            var sel = lvShortcuts.SelectedItems.Cast<ListViewItem>().FirstOrDefault();
+            if (sel == null) return;
+            int oldIndex = sel.Index;
+            int delta = e.KeyCode == Keys.Up || e.KeyCode == Keys.Left ? -1
+                      : e.KeyCode == Keys.Down || e.KeyCode == Keys.Right ? 1
+                      : 0;
+            if (delta != 0)
+            {
+                MoveItem(oldIndex, oldIndex + delta);
+                e.Handled = true;
+            }
+        }
+
+        private void MoveItem(int oldIndex, int newIndex)
+        {
+            if (newIndex < 0 || newIndex >= _items.Count) return;
+            var item = _items[oldIndex];
+            _items.RemoveAt(oldIndex);
+            _items.Insert(newIndex, item);
+            RefreshViews();
+            lbShortcuts.SelectedIndex = newIndex;
+            lvShortcuts.Items[newIndex].Selected = true;
+            Log($"Moved '{item.FullPath}' to position {newIndex + 1}");
+        }
+
+        private void Log(string message)
+        {
+            rtbLog.AppendText(DateTime.Now.ToString("[HH:mm:ss] ") + message + Environment.NewLine);
+        }
+
+        private class BoxItem
+        {
+            public ShortcutItem Item { get; }
+            private readonly string _text;
+            public BoxItem(ShortcutItem item, int index)
+            {
+                Item = item;
+                _text = $"[{index}] {item.Name}";
+            }
+            public override string ToString() => _text;
+        }
+
+        #region PInvoke
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
         private struct SHFILEINFO
         {
@@ -220,14 +274,9 @@ namespace ShortcutShelf
             {
                 if (Directory.Exists(path))
                 {
-                    SHFILEINFO info;
-                    SHGetFileInfo(
-                        path,
-                        FILE_ATTRIBUTE_DIRECTORY,
-                        out info,
+                    SHGetFileInfo(path, FILE_ATTRIBUTE_DIRECTORY, out var info,
                         (uint)Marshal.SizeOf(typeof(SHFILEINFO)),
-                        SHGFI_ICON | SHGFI_LARGEICON | SHGFI_USEFILEATTRIBUTES
-                    );
+                        SHGFI_ICON | SHGFI_LARGEICON | SHGFI_USEFILEATTRIBUTES);
                     return Icon.FromHandle(info.hIcon);
                 }
                 return Icon.ExtractAssociatedIcon(path);
