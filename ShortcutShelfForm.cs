@@ -321,10 +321,70 @@ namespace ShortcutShelf
                 view.Items[index + 1].Selected = true;
         }
 
+        /// <summary>
+        /// Handles Ctrl+Arrow key reordering in the ListView.
+        /// In LargeIcon view, Up/Down move by one visual row (based on actual layout),
+        /// Left/Right move by one item.
+        /// In other views, all arrows move by one item.
+        /// </summary>
+        /// <param name="key">The arrow key that was pressed.</param>
         private void HandleArrowKey(Keys key)
         {
-            MoveSelection((key == Keys.Up || key == Keys.Left) ? -1 : +1);
+            int delta = 0;
+
+            if (lvShortcuts.View == View.LargeIcon)
+            {
+                // Determine how many items are in the first visual row
+                int columns = 1;
+                if (lvShortcuts.Items.Count > 0)
+                {
+                    // Find the smallest Y-coordinate among all item bounds
+                    int minY = lvShortcuts.Items
+                        .Cast<ListViewItem>()
+                        .Min(item => item.Bounds.Top);
+
+                    // Count how many items share that Y-coordinate (i.e. items in the first row)
+                    columns = lvShortcuts.Items
+                        .Cast<ListViewItem>()
+                        .Count(item => item.Bounds.Top == minY);
+
+                    // Ensure at least one column
+                    columns = Math.Max(1, columns);
+                }
+
+                switch (key)
+                {
+                    case Keys.Up:
+                        // Move up by one row
+                        delta = -columns;
+                        break;
+                    case Keys.Down:
+                        // Move down by one row
+                        delta = columns;
+                        break;
+                    case Keys.Left:
+                        // Move left by one item
+                        delta = -1;
+                        break;
+                    case Keys.Right:
+                        // Move right by one item
+                        delta = +1;
+                        break;
+                    default:
+                        return;
+                }
+            }
+            else
+            {
+                // In non-icon views, all arrows move by one item
+                delta = (key == Keys.Up || key == Keys.Left) ? -1 : +1;
+            }
+
+            // Perform the move; out-of-range deltas are ignored by MoveSelection
+            MoveSelection(delta);
         }
+
+
 
         private void MoveSelection(int delta)
         {
