@@ -216,6 +216,14 @@ namespace ShortcutShelf
 
         private void LbShortcuts_KeyDown(object sender, KeyEventArgs e)
         {
+            if (e.KeyCode == Keys.Enter)
+            {
+                // open the ListBox’s selected shortcut
+                if (lbShortcuts.SelectedItem is BoxItem box)
+                    OpenItem(box.Item);
+                e.Handled = true;
+                return;
+            }
             if (e.KeyCode == Keys.Up || e.KeyCode == Keys.Left ||
                 e.KeyCode == Keys.Down || e.KeyCode == Keys.Right)
             {
@@ -226,6 +234,14 @@ namespace ShortcutShelf
 
         private void LvShortcuts_KeyDown(object sender, KeyEventArgs e)
         {
+            if (e.KeyCode == Keys.Enter)
+            {
+                // open the ListView’s selected shortcut
+                if (lvShortcuts.SelectedItems.Count > 0)
+                    OpenItem(lvShortcuts.SelectedItems[0].Tag as ShortcutItem);
+                e.Handled = true;
+                return;
+            }
             if (e.KeyCode == Keys.Up || e.KeyCode == Keys.Left ||
                 e.KeyCode == Keys.Down || e.KeyCode == Keys.Right)
             {
