@@ -24,6 +24,34 @@ namespace ShortcutShelf
         private void ShortcutShelfForm_Load(object sender, EventArgs e)
         {
             LoadShortcuts();
+            // Add usage tips to log
+            Log("📌 Press F1 to view usage tips.");
+
+        }
+
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+        {
+            if (keyData == Keys.F1)
+            {
+                ShowUsageTips();
+                return true;
+            }
+            return base.ProcessCmdKey(ref msg, keyData);
+        }
+
+        private void ShowUsageTips()
+        {
+            string tips = string.Join(Environment.NewLine, new[]
+            {
+        "📌 ShortcutShelf Usage Tips:",
+        "• Arrow keys = Select item",
+        "• Enter / Double-click = Open item",
+        "• Drag & Drop = Add shortcut",
+        "• Right-click = Delete shortcut",
+        "• Ctrl + Arrow = Move (reorder)",
+        "• Filter box = Search by name or path"
+    });
+            MessageBox.Show(tips, "Usage Tips", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void ShortcutShelfForm_FormClosing(object sender, FormClosingEventArgs e)
@@ -218,17 +246,25 @@ namespace ShortcutShelf
         {
             if (e.KeyCode == Keys.Enter)
             {
-                // open the ListBox’s selected shortcut
                 if (lbShortcuts.SelectedItem is BoxItem box)
                     OpenItem(box.Item);
                 e.Handled = true;
                 return;
             }
+
             if (e.KeyCode == Keys.Up || e.KeyCode == Keys.Left ||
                 e.KeyCode == Keys.Down || e.KeyCode == Keys.Right)
             {
-                HandleArrowKey(e.KeyCode);
-                e.Handled = true;
+                if (e.Control)
+                {
+                    HandleArrowKey(e.KeyCode); // Ctrl+Arrow = reorder
+                    e.Handled = true;
+                }
+                else
+                {
+                    MoveFocus(lbShortcuts, e.KeyCode);
+                    e.Handled = true;
+                }
             }
         }
 
@@ -236,19 +272,54 @@ namespace ShortcutShelf
         {
             if (e.KeyCode == Keys.Enter)
             {
-                // open the ListView’s selected shortcut
                 if (lvShortcuts.SelectedItems.Count > 0)
                     OpenItem(lvShortcuts.SelectedItems[0].Tag as ShortcutItem);
                 e.Handled = true;
                 return;
             }
+
             if (e.KeyCode == Keys.Up || e.KeyCode == Keys.Left ||
                 e.KeyCode == Keys.Down || e.KeyCode == Keys.Right)
             {
-                HandleArrowKey(e.KeyCode);
-                e.Handled = true;
+                if (e.Control)
+                {
+                    HandleArrowKey(e.KeyCode); // Ctrl+Arrow = reorder
+                    e.Handled = true;
+                }
+                else
+                {
+                    MoveFocus(lvShortcuts, e.KeyCode);
+                    e.Handled = true;
+                }
             }
         }
+
+        private void MoveFocus(ListBox box, Keys key)
+        {
+            int index = box.SelectedIndex;
+            if (index == -1) return;
+
+            int count = box.Items.Count;
+            if (key == Keys.Up && index > 0)
+                box.SelectedIndex = index - 1;
+            else if (key == Keys.Down && index < count - 1)
+                box.SelectedIndex = index + 1;
+        }
+
+        private void MoveFocus(ListView view, Keys key)
+        {
+            if (view.SelectedItems.Count == 0) return;
+            var item = view.SelectedItems[0];
+            int index = item.Index;
+            int count = view.Items.Count;
+
+            view.SelectedItems.Clear();
+            if (key == Keys.Up && index > 0)
+                view.Items[index - 1].Selected = true;
+            else if (key == Keys.Down && index < count - 1)
+                view.Items[index + 1].Selected = true;
+        }
+
 
         private void HandleArrowKey(Keys key)
         {

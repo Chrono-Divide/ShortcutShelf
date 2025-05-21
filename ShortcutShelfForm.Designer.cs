@@ -73,7 +73,7 @@ namespace ShortcutShelf
             tableLayoutPanel1.RowStyles.Add(new RowStyle());
             tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
             tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Absolute, 120F));
-            tableLayoutPanel1.Size = new Size(800, 600);
+            tableLayoutPanel1.Size = new Size(800, 577);
             tableLayoutPanel1.TabIndex = 1;
             // 
             // txtPath
@@ -99,7 +99,7 @@ namespace ShortcutShelf
             // splitContainer1.Panel2
             // 
             splitContainer1.Panel2.Controls.Add(lvShortcuts);
-            splitContainer1.Size = new Size(794, 445);
+            splitContainer1.Size = new Size(794, 422);
             splitContainer1.SplitterDistance = 220;
             splitContainer1.TabIndex = 1;
             // 
@@ -112,7 +112,7 @@ namespace ShortcutShelf
             lbShortcuts.ItemHeight = 15;
             lbShortcuts.Location = new Point(0, 0);
             lbShortcuts.Name = "lbShortcuts";
-            lbShortcuts.Size = new Size(220, 415);
+            lbShortcuts.Size = new Size(220, 392);
             lbShortcuts.TabIndex = 0;
             lbShortcuts.SelectedIndexChanged += Control_SelectedIndexChanged;
             lbShortcuts.DragDrop += LbShortcuts_DragDrop;
@@ -138,7 +138,7 @@ namespace ShortcutShelf
             filterPanel.Controls.Add(txtFilter);
             filterPanel.Controls.Add(lblFilter);
             filterPanel.Dock = DockStyle.Bottom;
-            filterPanel.Location = new Point(0, 415);
+            filterPanel.Location = new Point(0, 392);
             filterPanel.Name = "filterPanel";
             filterPanel.Padding = new Padding(0, 2, 0, 0);
             filterPanel.Size = new Size(220, 30);
@@ -173,7 +173,7 @@ namespace ShortcutShelf
             lvShortcuts.LargeImageList = imageListLarge;
             lvShortcuts.Location = new Point(0, 0);
             lvShortcuts.Name = "lvShortcuts";
-            lvShortcuts.Size = new Size(570, 445);
+            lvShortcuts.Size = new Size(570, 422);
             lvShortcuts.TabIndex = 0;
             lvShortcuts.UseCompatibleStateImageBehavior = false;
             lvShortcuts.ItemSelectionChanged += LvShortcuts_ItemSelectionChanged;
@@ -191,7 +191,7 @@ namespace ShortcutShelf
             // rtbLog
             // 
             rtbLog.Dock = DockStyle.Fill;
-            rtbLog.Location = new Point(3, 483);
+            rtbLog.Location = new Point(3, 460);
             rtbLog.Name = "rtbLog";
             rtbLog.ReadOnly = true;
             rtbLog.Size = new Size(794, 114);
