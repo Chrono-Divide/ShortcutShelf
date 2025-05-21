@@ -9,11 +9,12 @@ namespace ShortcutShelf
     partial class ShortcutShelfForm
     {
         private IContainer components = null;
+
         private TableLayoutPanel tableLayoutPanel1;
         private TextBox txtPath;
         private SplitContainer splitContainer1;
         private ListBox lbShortcuts;
-        private FlowLayoutPanel flpDirections;
+        private Panel filterPanel;
         private Label lblFilter;
         private TextBox txtFilter;
         private ListView lvShortcuts;
@@ -22,12 +23,17 @@ namespace ShortcutShelf
         private ContextMenuStrip contextMenu;
         private ToolStripMenuItem deleteToolStripMenuItem;
 
+        /// <summary>
+        ///  Clean up any resources being used.
+        /// </summary>
         protected override void Dispose(bool disposing)
         {
             if (disposing && (components != null))
                 components.Dispose();
             base.Dispose(disposing);
         }
+
+        #region Windows Form Designer generated code
 
         private void InitializeComponent()
         {
@@ -38,9 +44,9 @@ namespace ShortcutShelf
             lbShortcuts = new ListBox();
             contextMenu = new ContextMenuStrip(components);
             deleteToolStripMenuItem = new ToolStripMenuItem();
-            flpDirections = new FlowLayoutPanel();
-            lblFilter = new Label();
+            filterPanel = new Panel();
             txtFilter = new TextBox();
+            lblFilter = new Label();
             lvShortcuts = new ListView();
             imageListLarge = new ImageList(components);
             rtbLog = new RichTextBox();
@@ -50,7 +56,7 @@ namespace ShortcutShelf
             splitContainer1.Panel2.SuspendLayout();
             splitContainer1.SuspendLayout();
             contextMenu.SuspendLayout();
-            flpDirections.SuspendLayout();
+            filterPanel.SuspendLayout();
             SuspendLayout();
             // 
             // tableLayoutPanel1
@@ -88,7 +94,7 @@ namespace ShortcutShelf
             // splitContainer1.Panel1
             // 
             splitContainer1.Panel1.Controls.Add(lbShortcuts);
-            splitContainer1.Panel1.Controls.Add(flpDirections);
+            splitContainer1.Panel1.Controls.Add(filterPanel);
             // 
             // splitContainer1.Panel2
             // 
@@ -127,35 +133,36 @@ namespace ShortcutShelf
             deleteToolStripMenuItem.Text = "Delete";
             deleteToolStripMenuItem.Click += DeleteToolStripMenuItem_Click;
             // 
-            // flpDirections
+            // filterPanel
             // 
-            flpDirections.Controls.Add(lblFilter);
-            flpDirections.Controls.Add(txtFilter);
-            flpDirections.Dock = DockStyle.Bottom;
-            flpDirections.Location = new Point(0, 415);
-            flpDirections.Name = "flpDirections";
-            flpDirections.Padding = new Padding(4);
-            flpDirections.Size = new Size(220, 30);
-            flpDirections.TabIndex = 1;
+            filterPanel.Controls.Add(txtFilter);
+            filterPanel.Controls.Add(lblFilter);
+            filterPanel.Dock = DockStyle.Bottom;
+            filterPanel.Location = new Point(0, 415);
+            filterPanel.Name = "filterPanel";
+            filterPanel.Padding = new Padding(0, 2, 0, 0);
+            filterPanel.Size = new Size(220, 30);
+            filterPanel.TabIndex = 1;
+            // 
+            // txtFilter
+            // 
+            txtFilter.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            txtFilter.Location = new Point(52, 6);
+            txtFilter.Name = "txtFilter";
+            txtFilter.Size = new Size(160, 23);
+            txtFilter.TabIndex = 1;
+            txtFilter.TextChanged += txtFilter_TextChanged;
             // 
             // lblFilter
             // 
+            lblFilter.Anchor = AnchorStyles.Left;
             lblFilter.AutoSize = true;
-            lblFilter.Location = new Point(8, 12);
-            lblFilter.Margin = new Padding(4, 8, 2, 4);
+            lblFilter.Location = new Point(8, 9);
             lblFilter.Name = "lblFilter";
             lblFilter.Size = new Size(36, 15);
             lblFilter.TabIndex = 0;
             lblFilter.Text = "Filter:";
             lblFilter.TextAlign = ContentAlignment.MiddleLeft;
-            // 
-            // txtFilter
-            // 
-            txtFilter.Location = new Point(49, 7);
-            txtFilter.Name = "txtFilter";
-            txtFilter.Size = new Size(120, 23);
-            txtFilter.TabIndex = 1;
-            txtFilter.TextChanged += txtFilter_TextChanged;
             // 
             // lvShortcuts
             // 
@@ -209,9 +216,11 @@ namespace ShortcutShelf
             ((ISupportInitialize)splitContainer1).EndInit();
             splitContainer1.ResumeLayout(false);
             contextMenu.ResumeLayout(false);
-            flpDirections.ResumeLayout(false);
-            flpDirections.PerformLayout();
+            filterPanel.ResumeLayout(false);
+            filterPanel.PerformLayout();
             ResumeLayout(false);
         }
+
+        #endregion
     }
 }
