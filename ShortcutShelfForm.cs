@@ -26,7 +26,6 @@ namespace ShortcutShelf
             LoadShortcuts();
             // Add usage tips to log
             Log("📌 Press F1 to view usage tips.");
-
         }
 
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
@@ -43,14 +42,14 @@ namespace ShortcutShelf
         {
             string tips = string.Join(Environment.NewLine, new[]
             {
-        "📌 ShortcutShelf Usage Tips:",
-        "• Arrow keys = Select item",
-        "• Enter / Double-click = Open item",
-        "• Drag & Drop = Add shortcut",
-        "• Right-click = Delete shortcut",
-        "• Ctrl + Arrow = Move (reorder)",
-        "• Filter box = Search by name or path"
-    });
+                "📌 ShortcutShelf Usage Tips:",
+                "• Arrow keys = Select item",
+                "• Enter / Double-click = Open item",
+                "• Drag & Drop = Add shortcut",
+                "• Right-click = Delete shortcut",
+                "• Ctrl + Arrow = Move (reorder)",
+                "• Filter box = Search by name or path"
+            });
             MessageBox.Show(tips, "Usage Tips", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
@@ -242,8 +241,10 @@ namespace ShortcutShelf
             Log($"Deleted '{item.FullPath}'");
         }
 
+        // Handle key events for the ListBox: ←/→ move to previous/next item, ↑/↓ move normally, Ctrl+Arrow for reordering
         private void LbShortcuts_KeyDown(object sender, KeyEventArgs e)
         {
+            // Open item on Enter
             if (e.KeyCode == Keys.Enter)
             {
                 if (lbShortcuts.SelectedItem is BoxItem box)
@@ -252,24 +253,31 @@ namespace ShortcutShelf
                 return;
             }
 
+            // Intercept all arrow keys
             if (e.KeyCode == Keys.Up || e.KeyCode == Keys.Left ||
                 e.KeyCode == Keys.Down || e.KeyCode == Keys.Right)
             {
                 if (e.Control)
                 {
-                    HandleArrowKey(e.KeyCode); // Ctrl+Arrow = reorder
-                    e.Handled = true;
+                    // Ctrl + Arrow: reorder items
+                    HandleArrowKey(e.KeyCode);
                 }
                 else
                 {
-                    MoveFocus(lbShortcuts, e.KeyCode);
-                    e.Handled = true;
+                    // Map Left to Up, Right to Down
+                    var logicalKey = (e.KeyCode == Keys.Left) ? Keys.Up
+                                    : (e.KeyCode == Keys.Right) ? Keys.Down
+                                    : e.KeyCode;
+                    MoveFocus(lbShortcuts, logicalKey);
                 }
+                e.Handled = true;
             }
         }
 
+        // Handle key events for the ListView: Enter to open, Ctrl+Arrow for reordering, default behavior for other arrows
         private void LvShortcuts_KeyDown(object sender, KeyEventArgs e)
         {
+            // Open item on Enter
             if (e.KeyCode == Keys.Enter)
             {
                 if (lvShortcuts.SelectedItems.Count > 0)
@@ -278,19 +286,12 @@ namespace ShortcutShelf
                 return;
             }
 
-            if (e.KeyCode == Keys.Up || e.KeyCode == Keys.Left ||
-                e.KeyCode == Keys.Down || e.KeyCode == Keys.Right)
+            // Use Ctrl+Arrow for reordering only
+            if (e.Control && (e.KeyCode == Keys.Up || e.KeyCode == Keys.Left ||
+                              e.KeyCode == Keys.Down || e.KeyCode == Keys.Right))
             {
-                if (e.Control)
-                {
-                    HandleArrowKey(e.KeyCode); // Ctrl+Arrow = reorder
-                    e.Handled = true;
-                }
-                else
-                {
-                    MoveFocus(lvShortcuts, e.KeyCode);
-                    e.Handled = true;
-                }
+                HandleArrowKey(e.KeyCode);
+                e.Handled = true;
             }
         }
 
@@ -319,7 +320,6 @@ namespace ShortcutShelf
             else if (key == Keys.Down && index < count - 1)
                 view.Items[index + 1].Selected = true;
         }
-
 
         private void HandleArrowKey(Keys key)
         {
