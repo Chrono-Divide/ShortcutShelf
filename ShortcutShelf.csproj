@@ -6,6 +6,27 @@
     <Nullable>enable</Nullable>
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
+    <PackageIcon>ShortcutShelfIcon_1024x1024.png</PackageIcon>
+    <ApplicationIcon>ico\ShortcutShelfIcon.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="ico\ShortcutShelfIcon.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="ico\ShortcutShelfIcon.ico">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+    <None Update="ico\ShortcutShelfIcon_1024x1024.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+    <None Update="ico\ShortcutShelfIcon_128x128.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
 
 </Project>
