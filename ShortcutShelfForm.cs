@@ -1,4 +1,5 @@
-﻿using System;
+﻿// ShortcutShelfForm.cs
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
@@ -84,6 +85,37 @@ namespace ShortcutShelf
             }
         }
 
+        private void ApplyFilter(string keyword)
+        {
+            var lower = (keyword ?? "").ToLower();
+            var filtered = string.IsNullOrEmpty(lower)
+                ? _items
+                : _items.Where(i =>
+                    i.Name.ToLower().Contains(lower) ||
+                    i.FullPath.ToLower().Contains(lower)
+                  ).ToList();
+
+            lbShortcuts.Items.Clear();
+            lvShortcuts.Items.Clear();
+            imageListLarge.Images.Clear();
+
+            for (int i = 0; i < filtered.Count; i++)
+            {
+                var item = filtered[i];
+                lbShortcuts.Items.Add(new BoxItem(item, i + 1));
+
+                var ico = GetIcon(item.FullPath);
+                imageListLarge.Images.Add(item.FullPath, ico);
+
+                var lvi = new ListViewItem(item.Name)
+                {
+                    Tag = item,
+                    ImageKey = item.FullPath
+                };
+                lvShortcuts.Items.Add(lvi);
+            }
+        }
+
         private void ListControl_DragEnter(object sender, DragEventArgs e)
         {
             e.Effect = e.Data.GetDataPresent(DataFormats.FileDrop)
@@ -94,16 +126,14 @@ namespace ShortcutShelf
         private void LbShortcuts_DragDrop(object sender, DragEventArgs e)
         {
             if (!e.Data.GetDataPresent(DataFormats.FileDrop)) return;
-            var files = (string[])e.Data.GetData(DataFormats.FileDrop);
-            foreach (var path in files)
+            foreach (var path in (string[])e.Data.GetData(DataFormats.FileDrop))
                 AddShortcut(path);
         }
 
         private void LvShortcuts_DragDrop(object sender, DragEventArgs e)
         {
             if (!e.Data.GetDataPresent(DataFormats.FileDrop)) return;
-            var files = (string[])e.Data.GetData(DataFormats.FileDrop);
-            foreach (var path in files)
+            foreach (var path in (string[])e.Data.GetData(DataFormats.FileDrop))
                 AddShortcut(path);
         }
 
@@ -186,35 +216,46 @@ namespace ShortcutShelf
 
         private void LbShortcuts_KeyDown(object sender, KeyEventArgs e)
         {
-            if (lbShortcuts.SelectedIndex < 0) return;
-            int delta = e.KeyCode == Keys.Up || e.KeyCode == Keys.Left ? -1
-                      : e.KeyCode == Keys.Down || e.KeyCode == Keys.Right ? 1
-                      : 0;
-            if (delta != 0)
+            if (e.KeyCode == Keys.Up || e.KeyCode == Keys.Left ||
+                e.KeyCode == Keys.Down || e.KeyCode == Keys.Right)
             {
-                MoveItem(lbShortcuts.SelectedIndex, lbShortcuts.SelectedIndex + delta);
+                HandleArrowKey(e.KeyCode);
                 e.Handled = true;
             }
         }
 
         private void LvShortcuts_KeyDown(object sender, KeyEventArgs e)
         {
-            var sel = lvShortcuts.SelectedItems.Cast<ListViewItem>().FirstOrDefault();
-            if (sel == null) return;
-            int oldIndex = sel.Index;
-            int delta = e.KeyCode == Keys.Up || e.KeyCode == Keys.Left ? -1
-                      : e.KeyCode == Keys.Down || e.KeyCode == Keys.Right ? 1
-                      : 0;
-            if (delta != 0)
+            if (e.KeyCode == Keys.Up || e.KeyCode == Keys.Left ||
+                e.KeyCode == Keys.Down || e.KeyCode == Keys.Right)
             {
-                MoveItem(oldIndex, oldIndex + delta);
+                HandleArrowKey(e.KeyCode);
                 e.Handled = true;
             }
         }
 
+        private void HandleArrowKey(Keys key)
+        {
+            MoveSelection((key == Keys.Up || key == Keys.Left) ? -1 : +1);
+        }
+
+        private void MoveSelection(int delta)
+        {
+            int oldIndex;
+            if (lbShortcuts.Focused)
+                oldIndex = lbShortcuts.SelectedIndex;
+            else if (lvShortcuts.Focused && lvShortcuts.SelectedItems.Count > 0)
+                oldIndex = lvShortcuts.SelectedItems[0].Index;
+            else
+                return;
+
+            int newIndex = oldIndex + delta;
+            if (newIndex < 0 || newIndex >= _items.Count) return;
+            MoveItem(oldIndex, newIndex);
+        }
+
         private void MoveItem(int oldIndex, int newIndex)
         {
-            if (newIndex < 0 || newIndex >= _items.Count) return;
             var item = _items[oldIndex];
             _items.RemoveAt(oldIndex);
             _items.Insert(newIndex, item);
@@ -287,5 +328,10 @@ namespace ShortcutShelf
             }
         }
         #endregion
+
+        private void txtFilter_TextChanged(object sender, EventArgs e)
+        {
+            ApplyFilter(txtFilter.Text);
+        }
     }
 }
