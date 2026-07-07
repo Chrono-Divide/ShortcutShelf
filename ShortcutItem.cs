@@ -5,10 +5,28 @@ namespace ShortcutShelf
 {
     public class ShortcutItem
     {
-        public string FullPath { get; set; }
+        public string FullPath { get; set; } = string.Empty;
 
         [JsonIgnore]
-        public string Name => Path.GetFileName(FullPath);
+        public string Name
+        {
+            get
+            {
+                if (string.IsNullOrWhiteSpace(FullPath))
+                    return "(missing path)";
+
+                try
+                {
+                    var trimmedPath = FullPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+                    var name = Path.GetFileName(trimmedPath);
+                    return string.IsNullOrWhiteSpace(name) ? FullPath : name;
+                }
+                catch
+                {
+                    return FullPath;
+                }
+            }
+        }
 
         public ShortcutItem() { }
 
